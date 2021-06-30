@@ -176,6 +176,21 @@ class ErrorTest < ActiveModel::TestCase
     assert_equal "press the button", error.full_message
   end
 
+  test "full_message returns the given message when passed full_message option" do
+    error = ActiveModel::Error.new(Person.new, :name, full_message: "press the button")
+    assert_equal "press the button", error.full_message
+  end
+
+  test "full_message returns the given message when passed message_without_attribute option" do
+    error = ActiveModel::Error.new(Person.new, :name, message: "press the button", message_without_attribute: true)
+    assert_equal "press the button", error.full_message
+  end
+
+  test "full_message returns the given message without the attribute name included" do
+    error = ActiveModel::Error.new(Person.new, :name, :blank, message_without_attribute: true)
+    assert_equal "can't be blank", error.full_message
+  end
+
   test "full_message returns the given message with the attribute name included" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
     assert_equal "name can't be blank", error.full_message
@@ -232,7 +247,27 @@ class ErrorTest < ActiveModel::TestCase
       allow_nil: false,
       allow_blank: false,
       strict: true,
-      message: "message"
+      message: "message",
+      message_without_attribute: false
+    )
+
+    assert_equal(
+      error.details,
+      { error: :too_short, foo: :bar }
+    )
+
+    error = ActiveModel::Error.new(
+      person,
+      :name,
+      :too_short,
+      foo: :bar,
+      if: :foo,
+      unless: :bar,
+      on: :baz,
+      allow_nil: false,
+      allow_blank: false,
+      strict: true,
+      full_message: "message",
     )
 
     assert_equal(

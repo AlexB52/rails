@@ -8,12 +8,13 @@ module ActiveModel
   # Represents one single error
   class Error
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message]
+    MESSAGE_OPTIONS = [:message, :full_message, :message_without_attribute]
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base) # :nodoc:
+    def self.full_message(attribute, message, base, message_without_attribute = false) # :nodoc:
       return message if attribute == :base
+      return message if message_without_attribute
 
       base_class = base.class
       attribute = attribute.to_s
@@ -106,6 +107,11 @@ module ActiveModel
       @raw_type = type
       @type = type || :invalid
       @options = options
+
+      if full_message = @options.delete(:full_message)
+        @options[:message] = full_message
+        @options[:message_without_attribute] = true
+      end
     end
 
     def initialize_dup(other) # :nodoc:
@@ -156,7 +162,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base)
+      self.class.full_message(attribute, message, @base, @options[:message_without_attribute])
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.
