@@ -18,8 +18,8 @@ module ActiveModel
       base_class = base.class
       attribute = attribute.to_s
 
-      if full_message_format
-        defaults = [:"errors.hardcoded_format", full_message_format]
+      defaults = if full_message_format
+        [:"errors.hardcoded_format", full_message_format]
       elsif i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
         parts = attribute.split(".")
@@ -27,25 +27,21 @@ module ActiveModel
         namespace = parts.join("/") unless parts.empty?
         attributes_scope = "#{base_class.i18n_scope}.errors.models"
 
-        if namespace
-          defaults = base_class.lookup_ancestors.map do |klass|
+        base_class.lookup_ancestors.map do |klass|
+          if namespace
             [
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
             ]
-          end
-        else
-          defaults = base_class.lookup_ancestors.map do |klass|
+          else
             [
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
             ]
           end
-        end
-
-        defaults.flatten!
+        end.flatten!
       else
-        defaults = []
+        []
       end
 
       defaults << :"errors.format"
