@@ -8,18 +8,19 @@ module ActiveModel
   # Represents one single error
   class Error
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message, :full_message, :message_without_attribute]
+    MESSAGE_OPTIONS = [:message, :full_message, :full_message_format]
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base, message_without_attribute = false) # :nodoc:
+    def self.full_message(attribute, message, base, full_message_format = nil) # :nodoc:
       return message if attribute == :base
-      return message if message_without_attribute
 
       base_class = base.class
       attribute = attribute.to_s
 
-      if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
+      if full_message_format
+        defaults = [:"errors.hardcoded_format", full_message_format]
+      elsif i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
         parts = attribute.split(".")
         attribute_name = parts.pop
@@ -110,7 +111,7 @@ module ActiveModel
 
       if full_message = @options.delete(:full_message)
         @options[:message] = full_message
-        @options[:message_without_attribute] = true
+        @options[:full_message_format] = '%{message}'
       end
     end
 
@@ -162,7 +163,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base, @options[:message_without_attribute])
+      self.class.full_message(attribute, message, @base, @options[:full_message_format])
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.

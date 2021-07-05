@@ -518,8 +518,8 @@ module ActiveModel
     # Returns a full message for a given attribute.
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
-    def full_message(attribute, message, message_without_attribute: false)
-      Error.full_message(attribute, message, @base, message_without_attribute)
+    def full_message(attribute, message, full_message_format: nil)
+      Error.full_message(attribute, message, @base, full_message_format)
     end
 
     # Translates an error message in its default scope
